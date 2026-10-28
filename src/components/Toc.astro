@@ -45,15 +45,34 @@ const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3)
       m.classList.toggle('on', on);
       if (m.tagName === 'A') on ? m.setAttribute('aria-current', 'location') : m.removeAttribute('aria-current');
     });
+    // A heading becomes current once it reaches the line just below where a jump lands it
+    // (scroll-margin + a little). A third of the screen was too far down: in short sections
+    // the *next* heading crossed it right after a jump and stole the highlight.
     let ticking = false;
+    let lockUntil = 0;                                   // after a click, the clicked entry wins
     const update = () => {
       ticking = false;
-      const line = innerHeight * 0.3;
+      if (Date.now() < lockUntil) return;
+      const line = innerWidth <= 720 ? 140 : 112;        // sticky mobile header is taller
+      const atEnd = innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
       let cur = heads[0];
-      for (const h of heads) { if (h.getBoundingClientRect().top <= line) cur = h; else break; }
+      for (const h of heads) {
+        const top = h.getBoundingClientRect().top;
+        // at the very end, sections too short to reach the line count once visible
+        if (top <= line || (atEnd && top < innerHeight * 0.6)) cur = h; else break;
+      }
       if (cur) setOn(cur.id);
     };
-    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener('scroll', () => {
+      if (Date.now() < lockUntil) lockUntil = Date.now() + 150;   // keep the lock until scrolling settles
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    document.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a.ti[data-for]');
+      if (!a) return;
+      setOn(a.dataset.for!);
+      lockUntil = Date.now() + 400;
+    });
     update();
 
     // Sheet (narrow screens)

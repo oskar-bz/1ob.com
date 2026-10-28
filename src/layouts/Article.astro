@@ -22,17 +22,18 @@ const toc = hn ? [...headings, { depth: 2, slug: 'discussion', text: 'Discussion
   <div class="wrap">
     <article class={`article ${kind}`}>
       <Toc headings={toc} />
+      <!-- After a page transition the title morphs in; everything else rises in behind it (--d = delay). -->
       <header class="art-head">
-        <span class="lbl crumb"><slot name="crumb" /></span>
+        <span class="lbl crumb rise" style="--d: 100ms"><slot name="crumb" /></span>
         <h1 class:list={[{ sans: kind === 'project' }]} style={`view-transition-name: ${vt}`}>{title}</h1>
-        <p class="dek">{dek}</p>
-        <slot name="meta" />
+        <p class="dek rise" style="--d: 160ms">{dek}</p>
+        <div class="rise" style="--d: 200ms"><slot name="meta" /></div>
       </header>
-      <slot name="spec" />
-      <div class="prose">
+      <div class="rise" style="--d: 240ms"><slot name="spec" /></div>
+      <div class="prose rise" style="--d: 300ms">
         <slot />
       </div>
-      <div class="endmatter">
+      <div class="endmatter rise" style="--d: 360ms">
         <slot name="related" />
         <Share url={url} title={title} hn={hn} />
         {hn && <Comments hn={hn} />}

@@ -41,10 +41,37 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
        so nothing is stored on the visitor's device (§ 25 TDDDG). -->
   <script is:inline>
     (function () {
+      var html = document.documentElement;
       try {
         var r = document.referrer;
-        if (!r || r.indexOf(location.origin) !== 0) document.documentElement.setAttribute('data-entry', '');
+        if (!r || r.indexOf(location.origin) !== 0) html.setAttribute('data-entry', '');
       } catch (e) {}
+
+      // Cross-document view transitions. Every site page opts in via CSS; here we
+      // (1) skip them under reduced motion and for targets that aren't site pages,
+      // (2) catch the transition's promises so a skipped/aborted one never surfaces as an error,
+      // (3) mark the incoming page so its content can rise in behind the morphing title.
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var quiet = function (vt) {
+        if (!vt) return;
+        ['ready', 'finished', 'updateCallbackDone'].forEach(function (k) { vt[k] && vt[k].catch(function () {}); });
+      };
+      addEventListener('pageswap', function (e) {
+        var vt = e.viewTransition;
+        if (!vt) return;
+        quiet(vt);
+        var to = e.activation && e.activation.entry && e.activation.entry.url;
+        var path = to ? new URL(to).pathname : '';
+        if (reduce || /^\/(analytics|api|data)\/|\.(xml|json|php)$/.test(path)) vt.skipTransition();
+      });
+      addEventListener('pagereveal', function (e) {
+        var vt = e.viewTransition;
+        if (!vt) return;
+        quiet(vt);
+        if (reduce) { vt.skipTransition(); return; }
+        html.setAttribute('data-vt', '');
+        vt.finished.finally(function () { setTimeout(function () { html.removeAttribute('data-vt'); }, 700); });
+      });
     })();
   </script>
 </head>

@@ -8,14 +8,14 @@ const years = [...new Set(posts.map((p) => p.data.date.getFullYear()))].sort((a,
 ---
 <Base title="Writing" description="Notes from the projects, published when there's something worth saying.">
   <div class="wrap">
-    <section class="page-head">
+    <section class="page-head rise">
       <h1>Writing</h1>
       <p>Notes from the projects, published when there's something worth saying. One sentence on each says what it found.</p>
       <a class="nl" href="/rss.xml" style="--c: var(--blue); align-self: flex-start">Subscribe via RSS</a>
     </section>
 
     {tags.length > 1 && (
-      <div class="chips" role="group" aria-label="Filter by topic" data-filter="tag" style="--accent: var(--blue)">
+      <div class="chips rise" role="group" aria-label="Filter by topic" data-filter="tag" style="--accent: var(--blue); --d: 80ms">
         <button class="chip" type="button" data-v="all" aria-pressed="true">All <span class="n tab">{posts.length}</span></button>
         {tags.map((t) => (
           <button class="chip" type="button" data-v={t} aria-pressed="false">{t} <span class="n tab">{posts.filter((p) => p.data.tags.includes(t)).length}</span></button>
@@ -24,8 +24,8 @@ const years = [...new Set(posts.map((p) => p.data.date.getFullYear()))].sort((a,
     )}
 
     <div class="years">
-      {years.map((y) => (
-        <section class="yr" data-year>
+      {years.map((y, yi) => (
+        <section class="yr rise" style={`--d: ${140 + Math.min(yi, 6) * 60}ms`} data-year>
           <h2>{y}</h2>
           <div>
             {posts.filter((p) => p.data.date.getFullYear() === y).map((p) => (

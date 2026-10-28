@@ -117,7 +117,6 @@ button { font: inherit; color: inherit; }
 .swap.on > span:last-child { opacity: 1; filter: none; transform: none; }
 
 /* ---------- header ---------- */
-.site-header { view-transition-name: site-header; }
 .site-header .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 28px; }
 .nav { display: flex; gap: 20px; }
 
@@ -465,12 +464,40 @@ kbd { font: 500 11px/1 var(--mono); padding: 4px 6px; box-shadow: inset 0 0 0 1p
 .w { display: inline-block; }
 html[data-entry] .w, html[data-entry] .rise { animation: rise .7s var(--ease) both; animation-delay: var(--d, 0ms); }
 
-/* page transitions between documents; the clicked title morphs into the next heading */
+/* Page transitions between documents (design: Motion board, "02 · Page transition").
+   - the old page fades out quickly; the new page is not cross-faded as a whole
+   - the header is identical on both sides and simply stays put
+   - a title shared by list and page (same view-transition-name) moves and scales into place
+   - everything else on the new page rises in behind it (.rise with --d, gated by html[data-vt])
+   The opt-in is unconditional so both documents always agree; reduced motion is handled
+   in the head script by skipping the transition. */
 @view-transition { navigation: auto; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
+
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in  { from { opacity: 0; } }
+
+::view-transition-old(root) { animation: vt-out .14s ease both; }
+::view-transition-new(root) { animation: none; }
+
 ::view-transition-group(*) { animation-duration: .36s; animation-timing-function: var(--ease); }
+/* Titles wrap differently in a list and as a heading, so scaling snapshots distorts them.
+   Keep both at their natural size, pinned top-left: the group moves, the two crossfade. */
+::view-transition-old(*), ::view-transition-new(*) { width: auto; height: auto; inset-inline-start: 0; }
+::view-transition-old(root), ::view-transition-new(root) { width: 100%; height: 100%; }
+::view-transition-old(*) { animation: vt-out .16s ease both; }
+::view-transition-new(*) { animation: vt-in .26s ease .06s both; }
+/* list titles that weren't clicked have no partner on the new page: leave with the old page */
+::view-transition-old(*):only-child { animation: vt-out .1s ease both; }
+
+.site-header { view-transition-name: site-header; }
+::view-transition-group(site-header) { animation: none; }
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header) { animation: none; }
+
+/* --dv overrides --d for transitions, where the long first-visit delays would feel slow */
+html[data-vt] .rise { animation: rise .6s var(--ease) both; animation-delay: var(--dv, var(--d, 0ms)); }
+html[data-vt] .toc { animation: vt-in .4s ease .36s both; }   /* the rail is centred with transform; fade only */
 
 @media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
   *, *::before, *::after { animation: none !important; transition-duration: 0s !important; transition-delay: 0s !important; }
 }

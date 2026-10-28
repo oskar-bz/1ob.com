@@ -18,14 +18,14 @@ const words = site.headline.split(' ');
     <section class="hero">
       <p class="lbl rise" style="margin: 0; --d: 0ms">{site.name}</p>
       <h1>{words.map((w, i) => <><span class="w" style={`--d: ${60 + i * 32}ms`}>{w}</span>{' '}</>)}</h1>
-      <div class="say rise" style={`--d: ${120 + words.length * 32}ms`}>
+      <div class="say rise" style={`--d: ${120 + words.length * 32}ms; --dv: 80ms`}>
         <span class="lbl" style="color: var(--ink)">Say hi</span>
         <span class="hi"><a href={`mailto:${site.email}`}>email</a><a href={site.github}>github</a><a href={site.linkedin}>linkedin</a><a href="/rss.xml">rss</a></span>
       </div>
     </section>
 
     {lead && (
-      <section class="home-sec rise" aria-labelledby="h-projects" style={`--d: ${260 + words.length * 32}ms`}>
+      <section class="home-sec rise" aria-labelledby="h-projects" style={`--d: ${260 + words.length * 32}ms; --dv: 140ms`}>
         <div class="sec-head">
           <h2 id="h-projects" class="lbl"><span class="sq" style="background: var(--orange)" aria-hidden="true"></span>Projects</h2>
           <a href="/projects/" class="lbl tab">Index · {pad(projects.length)}</a>
@@ -61,7 +61,7 @@ const words = site.headline.split(' ');
     )}
 
     {latest && (
-      <section class="home-sec" aria-labelledby="h-writing" style="padding-top: 128px">
+      <section class="home-sec rise" aria-labelledby="h-writing" style={`padding-top: 128px; --d: ${380 + words.length * 32}ms; --dv: 200ms`}>
         <div class="sec-head">
           <h2 id="h-writing" class="lbl"><span class="sq" style="background: var(--blue)" aria-hidden="true"></span>Writing</h2>
           <a href="/writing/" class="lbl">Archive</a>
