@@ -1,0 +1,50 @@
+---
+title: A mel spectrogram without an FFT
+dek: A bank of biquads gets close enough for a small classifier — this sample post exercises every component the site has.
+date: 2026-09-02
+tags: [Speech, Hardware]
+project: kws-max10
+hn: fixture   # sample thread for local testing; replace with the real HN item id
+---
+
+## Why skip the FFT
+
+Body text runs at 19 pixels in Literata, in a column of about seventy characters. Paragraphs use `text-wrap: pretty`, so no line ends on an orphaned word.
+
+### What a mel band is
+
+Margin notes sit beside the line they annotate.<Sidenote>The mel scale compresses high frequencies roughly logarithmically, so the bands widen as they go up.</Sidenote> On a phone the number becomes a button that unfolds the note in place.
+
+$$
+m = 2595 \cdot \log_{10}\!\left(1 + \frac{f}{700}\right) \tag{1}
+$$
+
+## A bank of biquads
+
+Each section gets an entry in the table of contents: dashes in the right margin on wide screens, a button below 1200 pixels.
+
+<Figure n="F1" caption="Corner brackets mark anything you can look at or play with. In writing they are blue." frame placeholder="Figure or interactive demo" />
+
+### Choosing coefficients
+
+```python
+# centre frequencies, evenly spaced on the mel scale
+def mel(f):  return 2595 * np.log10(1 + f / 700)
+def hz(m):   return 700 * (10 ** (m / 2595) - 1)
+centres = hz(np.linspace(mel(80), mel(7600), n_bands))
+```
+
+### Fixed point
+
+A short section, here to give the contents a third level.
+
+## How close it gets
+
+| Front end | Parameters | Accuracy |
+| --- | --- | --- |
+| FFT + mel | 27K | [—] |
+| Biquad bank | 27K | [—] |
+
+## What I'd do differently
+
+The last section. Below it: the share row and the mirrored discussion.

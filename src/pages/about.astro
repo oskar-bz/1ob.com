@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../site';
+---
+<Base title="About">
+  <div class="wrap">
+    <section class="page-head">
+      <h1>About</h1>
+      <p>{site.headline}</p>
+    </section>
+    <div class="prose" style="padding-top: 0">
+      <!-- TODO: your own words. Two or three short paragraphs: what you work on, why, and what you are looking for. -->
+      <p>[A short paragraph about what you build and why small hardware.]</p>
+      <p>[One about Press Green and what you do there.]</p>
+      <p>[One about the things outside engineering: debating, moderating, the podcast.]</p>
+      <h2 id="now">Now</h2>
+      <p>{site.now}</p>
+      <h2 id="contact">Contact</h2>
+      <p>Email is best: <a href={`mailto:${site.email}`}>{site.email}</a>. Code is on <a href={site.github}>GitHub</a>.</p>
+    </div>
+  </div>
+</Base>

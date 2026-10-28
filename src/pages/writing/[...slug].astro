@@ -1,0 +1,28 @@
+---
+import { render, getEntry } from 'astro:content';
+import Article from '../../layouts/Article.astro';
+import Sidenote from '../../components/Sidenote.astro';
+import Figure from '../../components/Figure.astro';
+import { getPosts, isoDate, readingTime, pad, vtName, type Post } from '../../lib/util';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((w) => ({ params: { slug: w.id }, props: { w } }));
+}
+const { w } = Astro.props as { w: Post };
+const { Content, headings } = await render(w);
+const project = w.data.project ? await getEntry(w.data.project) : undefined;
+---
+<Article kind="writing" title={w.data.title} dek={w.data.dek} headings={headings} hn={w.data.hn} vt={vtName('w', w.id)}>
+  <Fragment slot="crumb">
+    <a href="/writing/">Writing</a><span aria-hidden="true">/</span>
+    <time class="tab" style="color: var(--ink)" datetime={isoDate(w.data.date)}>{isoDate(w.data.date)}</time>
+    <span aria-hidden="true">·</span><span>{readingTime(w.body)} min</span>
+  </Fragment>
+  <div slot="meta" class="art-meta">
+    {w.data.tags.length > 0 && <span>{w.data.tags.join(' · ')}</span>}
+    {project && <a href={`/projects/${project.id}/`}><span class="sq" style="background: var(--orange)" aria-hidden="true"></span>Project {pad(project.data.order)}</a>}
+  </div>
+
+  <Content components={{ Sidenote, Figure }} />
+</Article>

@@ -1,0 +1,7 @@
+---
+// Usage inside a paragraph:  …end of sentence.<Sidenote>The note.</Sidenote> Next sentence…
+// Wide screens: the note sits in the margin beside its line.
+// Narrow screens: the number becomes a tap target that unfolds the note in place (no JS).
+const id = 'sn-' + Math.random().toString(36).slice(2, 9);
+---
+<label for={id} class="sn-ref sn-label" aria-label="Show note"></label><input type="checkbox" id={id} class="sn-toggle" /><span class="sidenote" role="note"><span><slot /></span></span>

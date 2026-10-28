@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found" noindex status={404}>
+  <div class="wrap">
+    <section class="page-head" style="min-height: 50vh">
+      <span class="lbl">404</span>
+      <h1>Nothing here.</h1>
+      <p>Either the link is wrong or the page moved. Like some of the projects, it may simply have been abandoned.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 4px 20px">
+        <a class="nl" href="/">Home</a>
+        <a class="nl" href="/projects/" style="--c: var(--orange)">Projects</a>
+        <a class="nl" href="/writing/" style="--c: var(--blue)">Writing</a>
+      </div>
+    </section>
+  </div>
+</Base>

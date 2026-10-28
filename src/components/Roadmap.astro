@@ -1,0 +1,12 @@
+---
+interface Props { items: { label: string; state: 'done' | 'now' | 'todo' }[] }
+const { items } = Astro.props;
+const said = { done: 'done', now: 'in progress', todo: 'planned' };
+---
+{items.length > 0 && (
+  <ul class="tree">
+    {items.map((i) => (
+      <li class={i.state}><span class="cb" aria-hidden="true"></span><span class="t">{i.label}</span><span class="vh">({said[i.state]})</span></li>
+    ))}
+  </ul>
+)}

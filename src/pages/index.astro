@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import Roadmap from '../components/Roadmap.astro';
+import Status from '../components/Status.astro';
+import Brackets from '../components/Brackets.astro';
+import { site } from '../site';
+import { getProjects, getPosts, isoDate, readingTime, pad, vtName } from '../lib/util';
+
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.featured).sort((a, b) => a.data.featured! - b.data.featured!);
+const [lead, ...also] = featured;
+const posts = await getPosts();
+const [latest, ...older] = posts;
+const words = site.headline.split(' ');
+---
+<Base>
+  <div class="wrap">
+    <section class="hero">
+      <p class="lbl rise" style="margin: 0; --d: 0ms">{site.name}</p>
+      <h1>{words.map((w, i) => <><span class="w" style={`--d: ${60 + i * 32}ms`}>{w}</span>{' '}</>)}</h1>
+      <div class="say rise" style={`--d: ${120 + words.length * 32}ms`}>
+        <span class="lbl" style="color: var(--ink)">Say hi</span>
+        <span class="hi"><a href={`mailto:${site.email}`}>email</a><a href={site.github}>github</a><a href={site.linkedin}>linkedin</a><a href="/rss.xml">rss</a></span>
+      </div>
+    </section>
+
+    {lead && (
+      <section class="home-sec rise" aria-labelledby="h-projects" style={`--d: ${260 + words.length * 32}ms`}>
+        <div class="sec-head">
+          <h2 id="h-projects" class="lbl"><span class="sq" style="background: var(--orange)" aria-hidden="true"></span>Projects</h2>
+          <a href="/projects/" class="lbl tab">Index · {pad(projects.length)}</a>
+        </div>
+
+        <article class="lead">
+          <div class="txt">
+            <span class="lbl">{pad(lead.data.order)} · Current focus</span>
+            <h3><a href={`/projects/${lead.id}/`} style={`view-transition-name: ${vtName('p', lead.id)}`}>{lead.data.title}</a></h3>
+            <p>{lead.data.summary}</p>
+            <Roadmap items={lead.data.roadmap} />
+            <a href={`/projects/${lead.id}/`} class="nl" style="--c: var(--orange); align-self: flex-start; margin-top: auto">Read the write-up</a>
+          </div>
+          <a href={`/projects/${lead.id}/`} class="fig framed tighten" tabindex="-1" aria-hidden="true">
+            <Brackets />
+            <dl>{lead.data.spec.slice(0, 4).map((s) => <><dt>{s.k}</dt><dd>{s.v}</dd></>)}</dl>
+          </a>
+        </article>
+
+        {also.length > 0 && (
+          <div class="also">
+            {also.map((p) => (
+              <a href={`/projects/${p.id}/`}>
+                <span class="date">{pad(p.data.order)}</span>
+                <span class="t" style={`view-transition-name: ${vtName('p', p.id)}`}>{p.data.title}</span>
+                <p>{p.data.summary}</p>
+                <Status status={p.data.status} />
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+    )}
+
+    {latest && (
+      <section class="home-sec" aria-labelledby="h-writing" style="padding-top: 128px">
+        <div class="sec-head">
+          <h2 id="h-writing" class="lbl"><span class="sq" style="background: var(--blue)" aria-hidden="true"></span>Writing</h2>
+          <a href="/writing/" class="lbl">Archive</a>
+        </div>
+        <div class="wlatest">
+          <a class="big" href={`/writing/${latest.id}/`}>
+            <span class="date">{isoDate(latest.data.date)} · {readingTime(latest.body)} min</span>
+            <span class="t" style={`view-transition-name: ${vtName('w', latest.id)}`}>{latest.data.title}</span>
+            <p>{latest.data.dek}</p>
+          </a>
+          {older.length > 0 && (
+            <div class="list">
+              {older.slice(0, 3).map((w) => (
+                <a href={`/writing/${w.id}/`}><span class="date">{isoDate(w.data.date)}</span><span style={`view-transition-name: ${vtName('w', w.id)}`}>{w.data.title}</span></a>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+  </div>
+</Base>

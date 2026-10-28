@@ -1,0 +1,42 @@
+---
+import 'katex/dist/katex.min.css';
+import Base from './Base.astro';
+import Toc from '../components/Toc.astro';
+import Share from '../components/Share.astro';
+import Comments from '../components/Comments.astro';
+
+interface Props {
+  kind: 'project' | 'writing';
+  title: string;
+  dek: string;
+  description?: string;
+  headings: { depth: number; slug: string; text: string }[];
+  hn?: string;
+  vt: string;             // view-transition-name shared with the list entry
+}
+const { kind, title, dek, description, headings, hn, vt } = Astro.props;
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const toc = hn ? [...headings, { depth: 2, slug: 'discussion', text: 'Discussion' }] : headings;
+---
+<Base title={title} description={description ?? dek} type="article">
+  <div class="wrap">
+    <article class={`article ${kind}`}>
+      <Toc headings={toc} />
+      <header class="art-head">
+        <span class="lbl crumb"><slot name="crumb" /></span>
+        <h1 class:list={[{ sans: kind === 'project' }]} style={`view-transition-name: ${vt}`}>{title}</h1>
+        <p class="dek">{dek}</p>
+        <slot name="meta" />
+      </header>
+      <slot name="spec" />
+      <div class="prose">
+        <slot />
+      </div>
+      <div class="endmatter">
+        <slot name="related" />
+        <Share url={url} title={title} hn={hn} />
+        {hn && <Comments hn={hn} />}
+      </div>
+    </article>
+  </div>
+</Base>

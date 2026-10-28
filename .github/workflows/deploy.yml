@@ -1,0 +1,50 @@
+# Build the static site and upload it to all-inkl over FTPS on every push to main.
+# Repository secrets: FTP_SERVER (e.g. w0123456.kasserver.com), FTP_USERNAME, FTP_PASSWORD, FTP_DIR (e.g. /1ob.com/)
+#
+# Only files the action uploaded itself are ever replaced or deleted. Server-side state
+# (data/analytics.db, data/config.php, the GeoLite database, caches) is never touched.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Lint PHP
+        run: for f in $(find dist -name '*.php'); do php -l "$f"; done
+
+      - name: Upload via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            data/hn-cache/**
+            data/*.db
+            data/*.db-*
+            data/config.php

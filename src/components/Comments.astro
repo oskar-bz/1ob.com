@@ -1,0 +1,35 @@
+---
+// Mirrors the Hacker News thread. The server endpoint (/api/hn.php) fetches it,
+// caches it for five minutes, sanitises the HTML and returns finished markup —
+// so readers' browsers only ever talk to this domain.
+interface Props { hn: string }
+const { hn } = Astro.props;
+const item = `https://news.ycombinator.com/item?id=${hn}`;
+---
+<section class="comments" id="discussion" aria-labelledby="discussion-h" data-hn={hn}>
+  <div class="head">
+    <h2 id="discussion-h">Discussion</h2>
+    <span class="mono tab" style="font-size: 12px; color: var(--muted)" data-meta></span>
+  </div>
+  <p class="note">Mirrored from Hacker News. Reply there; it shows up here within a few minutes.</p>
+  <div class="thread" data-thread><p class="state">Loading the thread…</p></div>
+  <div class="more">
+    <span class="mono" style="font-size: 12px; color: var(--muted)" data-shown></span>
+    <a class="nl" href={item} rel="noopener" target="_blank" style="--c: var(--orange)">Open on HN</a>
+  </div>
+</section>
+
+<script>
+  const box = document.querySelector<HTMLElement>('.comments[data-hn]');
+  if (box) {
+    const thread = box.querySelector<HTMLElement>('[data-thread]')!;
+    fetch(`/api/hn.php?id=${encodeURIComponent(box.dataset.hn!)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d: { html: string; points: number; count: number; shown: number }) => {
+        thread.innerHTML = d.html || '<p class="state">No comments yet.</p>';   // sanitised server-side
+        box.querySelector('[data-meta]')!.textContent = `${d.points} points · ${d.count} comments`;
+        if (d.count > d.shown) box.querySelector('[data-shown]')!.textContent = `Showing ${d.shown} of ${d.count}`;
+      })
+      .catch(() => { thread.innerHTML = '<p class="state">The thread could not be loaded right now.</p>'; });
+  }
+</script>

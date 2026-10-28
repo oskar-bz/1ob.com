@@ -1,0 +1,42 @@
+---
+title: Keyword spotting on a MAX 10
+order: 1
+featured: 1
+summary: A time-domain filterbank replaces the FFT; a small CNN does the rest.
+dek: A time-domain filterbank in place of the FFT, and a depthwise-separable CNN, on a hobbyist FPGA board.
+domain: FPGA · Speech
+years: 2026–
+status: active
+spec:
+  - { k: Board, v: DE10-Lite }
+  - { k: Device, v: Intel MAX 10 }
+  - { k: Model, v: DS-CNN · 27K }
+roadmap:
+  - { label: Filterbank on FPGA, state: done }
+  - { label: Inference engine, state: now }
+  - { label: Live demo, state: todo }
+---
+
+## The problem
+
+Most keyword spotters begin the same way: frame the audio, take an FFT, pool the bins into mel bands, hand the result to a small network. On a small FPGA the FFT is the expensive step.
+
+## A filterbank instead
+
+A bank of band-pass filters runs in parallel in the time domain, one per mel band. Each envelope, sampled once per frame, becomes one column of the network's input.<Sidenote>A biquad needs only its last two inputs and outputs, so the front end stores nothing but filter state.</Sidenote> Nothing is buffered between microphone and classifier.
+
+<Figure n="F1" caption="Signal path. Left of the dashed line already runs on the board." frame placeholder="Figure" />
+
+```verilog
+// direct-form I biquad, Q2.14
+wire signed [31:0] acc = b0*x0 + b1*x1 + b2*x2
+                        - a1*y1 - a2*y2;
+always @(posedge clk) if (sample_en) begin
+  x2 <= x1;  x1 <= x0;
+  y2 <= y1;  y1 <= acc >>> 14;
+end
+```
+
+## What is left
+
+The filterbank runs on the board. What remains is an inference engine for the depthwise-separable network,<Sidenote>Splitting a $k \times k$ convolution into depthwise and pointwise steps cuts its multiplies to about $1/C_\text{out} + 1/k^2$ of the original.</Sidenote> then a demo on this page.

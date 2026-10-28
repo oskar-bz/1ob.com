@@ -1,0 +1,6 @@
+---
+import { statusLabel } from '../lib/util';
+interface Props { status: string; class?: string }
+const { status, class: cls = '' } = Astro.props;
+---
+<span class={`status ${cls}`}><span class={`sq st ${status}`} aria-hidden="true"></span>{statusLabel[status]}</span>

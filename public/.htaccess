@@ -1,0 +1,7 @@
+# Only the dashboard (index.php) and the beacon are reachable; helpers and vendor code are not.
+<FilesMatch "^(lib|config\.example)\.php$">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-store"
+</IfModule>

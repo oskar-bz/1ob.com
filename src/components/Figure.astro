@@ -1,0 +1,15 @@
+---
+// <Figure n="F1" caption="…" frame>  …image / demo / component…  </Figure>
+// frame: corner brackets (for things you can look at or play with)
+// pad: inner padding (for diagrams); placeholder: renders a labelled empty box
+import Brackets from './Brackets.astro';
+interface Props { n?: string; caption?: string; frame?: boolean; pad?: boolean; placeholder?: string }
+const { n, caption, frame = false, pad = false, placeholder } = Astro.props;
+---
+<figure class="figure">
+  {caption && <figcaption>{n && <b>{n}</b>}<span>{caption}</span></figcaption>}
+  <div class:list={['body', { framed: frame, pad }]}>
+    {frame && <Brackets />}
+    {placeholder ? <div class="ph"><span class="lbl">[ {placeholder} ]</span></div> : <slot />}
+  </div>
+</figure>

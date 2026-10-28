@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import Status from '../../components/Status.astro';
+import { getProjects, pad, statusLabel, vtName } from '../../lib/util';
+
+const projects = await getProjects();
+const order = ['active', 'planned', 'shipped', 'paused', 'abandoned'];
+const counts = order.map((s) => ({ s, n: projects.filter((p) => p.data.status === s).length })).filter((c) => c.n > 0);
+---
+<Base title="Projects" description="Everything I've built, including what stalled.">
+  <div class="wrap">
+    <section class="page-head">
+      <h1 class="sans">Projects</h1>
+      <p>Everything, including what stalled. Paused and abandoned projects say why, in one line.</p>
+    </section>
+
+    <div class="chips" role="group" aria-label="Filter by status" data-filter="status">
+      <button class="chip" type="button" data-v="all" aria-pressed="true">All <span class="n tab">{projects.length}</span></button>
+      {counts.map((c) => (
+        <button class="chip" type="button" data-v={c.s} aria-pressed="false"><span class={`sq st ${c.s}`} aria-hidden="true"></span>{statusLabel[c.s]} <span class="n tab">{c.n}</span></button>
+      ))}
+    </div>
+
+    <div class="phead lbl" aria-hidden="true"><span>No.</span><span>Project</span><span>Domain</span><span>Years</span><span>Status</span></div>
+    <div class="ptable">
+      {projects.map((p) => (
+        <a href={`/projects/${p.id}/`} class:list={['prow', { dim: p.data.status === 'paused' || p.data.status === 'abandoned' }]} data-status={p.data.status}>
+          <span class="m tab">{pad(p.data.order)}</span>
+          <span style="display: flex; flex-direction: column; gap: 6px">
+            <span class="t" style={`view-transition-name: ${vtName('p', p.id)}`}>{p.data.title}</span>
+            <p>{p.data.summary}</p>
+            {p.data.why && <span class="why">{p.data.why}</span>}
+          </span>
+          <span class="m c3">{p.data.domain}</span>
+          <span class="m tab c4">{p.data.years}</span>
+          <Status status={p.data.status} class="c5" />
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<script>
+  // Filter rows by status. Without JS the chips stay hidden and the full list shows.
+  const bar = document.querySelector<HTMLElement>('[data-filter="status"]');
+  if (bar) {
+    bar.classList.add('ready');
+    const rows = document.querySelectorAll<HTMLElement>('.prow');
+    bar.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+      if (!b) return;
+      bar.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+      const v = b.dataset.v;
+      rows.forEach((r) => { r.hidden = v !== 'all' && r.dataset.status !== v; });
+    });
+  }
+</script>

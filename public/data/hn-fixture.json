@@ -1,0 +1,17 @@
+{
+  "id": 0,
+  "type": "story",
+  "title": "A mel spectrogram without an FFT",
+  "points": 137,
+  "children": [
+    { "id": 1, "author": "rkoch", "created_at_i": 1793000000, "text": "Did you compare against a Goertzel bank? For a handful of bins it is usually the cheapest thing on a small FPGA.<p>Curious what the LE count looks like.",
+      "children": [
+        { "id": 2, "author": "oskar", "created_at_i": 1793003600, "text": "Briefly. Goertzel gives one bin per instance, and the upper mel bands are wide, so I would need several per band. One biquad covers a band.",
+          "children": [ { "id": 3, "author": "rkoch", "created_at_i": 1793007200, "text": "Fair, the bandwidth is the catch.", "children": [] } ] }
+      ] },
+    { "id": 4, "author": "lowpass_", "created_at_i": 1793050000, "text": "How sensitive is the classifier to the exact filter shapes? I would expect the first conv layer to absorb a fair amount of mismatch. See <a href=\"https://example.com/paper\" rel=\"nofollow\">this paper</a>.<script>alert(1)</script>",
+      "children": [ { "id": 5, "author": "mjd", "created_at_i": 1793060000, "text": "Same experience here. The first layer quietly fixes whatever the front end gets slightly wrong.<p><pre><code>  y[n] = b0*x[n] + b1*x[n-1]\n</code></pre>", "children": [] } ] },
+    { "id": 6, "author": null, "created_at_i": 1793070000, "text": null,
+      "children": [ { "id": 7, "author": "tinyml_fan", "created_at_i": 1793080000, "text": "Would like to see LE and multiplier usage once the inference engine is in.", "children": [] } ] }
+  ]
+}

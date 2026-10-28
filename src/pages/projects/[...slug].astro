@@ -1,0 +1,39 @@
+---
+import { render } from 'astro:content';
+import Article from '../../layouts/Article.astro';
+import Roadmap from '../../components/Roadmap.astro';
+import Sidenote from '../../components/Sidenote.astro';
+import Figure from '../../components/Figure.astro';
+import { getProjects, getPosts, pad, vtName, type Project } from '../../lib/util';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((p) => ({ params: { slug: p.id }, props: { p } }));
+}
+const { p } = Astro.props as { p: Project };
+const { Content, headings } = await render(p);
+const related = (await getPosts()).filter((w) => w.data.project?.id === p.id);
+const arrow = '<svg viewBox="0 0 8 8" width="8" height="8" aria-hidden="true"><path d="M1.5 6.5L6.5 1.5M2.5 1.5h4v4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
+---
+<Article kind="project" title={p.data.title} dek={p.data.dek} headings={headings} hn={p.data.hn} vt={vtName('p', p.id)}>
+  <Fragment slot="crumb"><a href="/projects/">Projects</a><span aria-hidden="true">/</span><span style="color: var(--ink)">{pad(p.data.order)}</span></Fragment>
+
+  <div slot="spec" class="spec-row">
+    <dl class="spec">
+      {p.data.spec.map((s) => <div><dt class="lbl">{s.k}</dt><dd>{s.v}</dd></div>)}
+      {p.data.source && <div><dt class="lbl">Source</dt><dd><a href={p.data.source}>GitHub<Fragment set:html={arrow} /></a></dd></div>}
+    </dl>
+    {p.data.roadmap.length > 0 && (
+      <div class="side"><span class="lbl" style="color: var(--ink)">Status</span><Roadmap items={p.data.roadmap} /></div>
+    )}
+  </div>
+
+  <Content components={{ Sidenote, Figure }} />
+
+  {related.length > 0 && (
+    <nav slot="related" class="related" aria-label="Related writing">
+      <span class="lbl">Related writing</span>
+      {related.map((w) => <a href={`/writing/${w.id}/`}><span class="sq" style="background: var(--blue)" aria-hidden="true"></span>{w.data.title}</a>)}
+    </nav>
+  )}
+</Article>

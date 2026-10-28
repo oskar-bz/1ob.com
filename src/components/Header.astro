@@ -1,0 +1,50 @@
+---
+import { nav, site } from '../site';
+const path = Astro.url.pathname;
+const current = (href: string) => path === href || path.startsWith(href);
+---
+<header class="site-header">
+  <div class="wrap">
+    <a href="/" class="logo" aria-label={`${site.domain}, home`}>
+      <span class="a" aria-hidden="true">1ob</span><span class="s" aria-hidden="true">/</span><span class="b" aria-hidden="true"><span>o</span><span>s</span><span>k</span><span>a</span><span>r</span></span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      {nav.map((n) => (
+        <a class="nl" href={n.href} style={`--c: ${n.color}`} aria-current={current(n.href) ? 'page' : undefined}>{n.label}</a>
+      ))}
+    </nav>
+    <button class="mb" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><i></i><i></i></button>
+  </div>
+</header>
+
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu">
+  <nav aria-label="Primary">
+    <a class="mi" href="/" aria-current={path === '/' ? 'page' : undefined}><span class="sq" style="background: var(--ink)"></span>Home</a>
+    {nav.map((n) => (
+      <a class="mi" href={n.href} aria-current={current(n.href) ? 'page' : undefined}>
+        <span class="sq" style={n.label === 'About' ? 'box-shadow: inset 0 0 0 1.5px var(--ink)' : `background: ${n.color}`}></span>{n.label}
+      </a>
+    ))}
+  </nav>
+  <div class="foot">
+    <span class="lbl" style="color: var(--ink)">Say hi</span>
+    <span class="hi"><a href={`mailto:${site.email}`}>email</a><a href={site.github}>github</a><a href={site.linkedin}>linkedin</a><a href="/rss.xml">rss</a></span>
+  </div>
+</div>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.mb');
+  const menu = document.getElementById('menu');
+  if (btn && menu) {
+    const set = (open: boolean) => {
+      btn.setAttribute('aria-expanded', String(open));
+      menu.classList.toggle('open', open);
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      if (open) menu.querySelector<HTMLElement>('a')?.focus({ preventScroll: true });
+    };
+    btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
+    menu.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) set(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) { set(false); btn.focus(); } });
+    matchMedia('(min-width: 721px)').addEventListener('change', (m) => { if (m.matches) set(false); });
+  }
+</script>

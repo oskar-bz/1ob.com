@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+# server-side state never belongs in git
+public/data/*
+!public/data/.htaccess
+!public/data/hn-fixture.json

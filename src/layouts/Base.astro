@@ -1,0 +1,92 @@
+---
+import '@fontsource-variable/literata/opsz.css';
+import '@fontsource-variable/literata/opsz-italic.css';
+import '@fontsource-variable/geist/wght.css';
+import '@fontsource-variable/geist-mono/wght.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  status?: number;
+}
+const { title, description = site.description, type = 'website', noindex = false, status } = Astro.props;
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+<!doctype html>
+<html lang="en" data-status={status}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex" />}
+  <meta name="theme-color" content="#f4f2ec" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate" type="application/rss+xml" title={`${site.name} — Writing`} href="/rss.xml" />
+  <meta property="og:type" content={type} />
+  <meta property="og:title" content={title ?? site.name} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:site_name" content={site.domain} />
+  <meta name="twitter:card" content="summary" />
+  <!-- Entry animation only on the first page of a visit. Decided from the referrer,
+       so nothing is stored on the visitor's device (§ 25 TDDDG). -->
+  <script is:inline>
+    (function () {
+      try {
+        var r = document.referrer;
+        if (!r || r.indexOf(location.origin) !== 0) document.documentElement.setAttribute('data-entry', '');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="sheet">
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </div>
+  <div class="under">
+    <div class="wrap">
+      <a href="#" class="wmr" aria-label={`${site.domain}, back to top`}>1ob<span>/</span></a>
+    </div>
+  </div>
+
+  <script>
+    // Copy buttons: <button data-copy="text"> with a .swap label inside.
+    document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+      let t: number | undefined;
+      btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(btn.dataset.copy || location.href); } catch { return; }
+        const s = btn.querySelector('.swap');
+        s?.classList.add('on');
+        clearTimeout(t);
+        t = window.setTimeout(() => s?.classList.remove('on'), 1600);
+      });
+    });
+
+    // Keyboard shortcuts: g then h / p / w / a.
+    const go: Record<string, string> = { h: '/', p: '/projects/', w: '/writing/', a: '/about/' };
+    let armed = 0;
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      const el = e.target as HTMLElement;
+      if (el.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (e.key === 'g') { armed = Date.now(); return; }
+      if (armed && Date.now() - armed < 1000 && go[e.key]) { armed = 0; location.href = go[e.key]; }
+    });
+  </script>
+  <script src="../lib/analytics.ts"></script>
+</body>
+</html>

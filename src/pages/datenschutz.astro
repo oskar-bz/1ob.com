@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../site';
+---
+<Base title="Datenschutz" noindex>
+  <div class="wrap">
+    <section class="page-head"><h1>Datenschutz</h1></section>
+    <div class="prose" style="padding-top: 0" lang="de">
+      <!-- DRAFT describing what this site actually does. Not legal advice: have it reviewed
+           (or compare with a generator such as e-recht24) before going live. -->
+      <h2 id="verantwortlich">Verantwortlicher</h2>
+      <p>{site.name}, Anschrift siehe <a href="/impressum/">Impressum</a>, E-Mail: <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+
+      <h2 id="hosting">Hosting und Server-Logfiles</h2>
+      <p>Diese Website wird bei der ALL-INKL.COM – Neue Medien Münnich, Hauptstraße 68, 02742 Friedersdorf gehostet. Beim Aufruf verarbeitet der Server technisch notwendige Daten (u. a. IP-Adresse, Zeitpunkt, aufgerufene Seite, Browser) in Logfiles. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (sicherer und stabiler Betrieb). [Speicherdauer laut Hoster eintragen.]</p>
+
+      <h2 id="reichweite">Reichweitenmessung ohne Cookies</h2>
+      <p>Ich zähle Seitenaufrufe mit einem eigenen, auf diesem Server betriebenen Skript. Es werden keine Cookies gesetzt und keine Informationen auf Ihrem Endgerät gespeichert oder ausgelesen, die über das zur Auslieferung der Seite ohnehin Nötige hinausgehen. Gespeichert werden: aufgerufene Seite, Herkunftsseite (nur der Domainname), Bildschirmbreite, Browser- und Betriebssystemfamilie, Land, Verweildauer und Scrolltiefe. Die IP-Adresse wird nicht gespeichert; sie dient nur kurzzeitig der Bestimmung des Landes und – zusammen mit einem täglich neu erzeugten und danach gelöschten Zufallswert – der Bildung einer nicht rückführbaren Tageskennung, mit der sich Mehrfachaufrufe zählen lassen. Signale wie „Do Not Track“ und „Global Privacy Control“ werden respektiert. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (Verbesserung des Angebots). Rohdaten werden nach [400] Tagen gelöscht.</p>
+
+      <h2 id="hn">Kommentare von Hacker News</h2>
+      <p>Unter manchen Beiträgen werden öffentliche Kommentare von Hacker News angezeigt. Diese ruft mein Server ab und liefert sie aus; Ihr Browser stellt dabei keine Verbindung zu Dritten her.</p>
+
+      <h2 id="schriften">Schriften und externe Inhalte</h2>
+      <p>Alle Schriften werden von diesem Server geladen. Es werden keine Inhalte von Drittanbietern eingebunden. Links zu anderen Diensten (z. B. X, Hacker News, GitHub) werden erst beim Anklicken aufgerufen.</p>
+
+      <h2 id="rechte">Ihre Rechte</h2>
+      <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch sowie Beschwerde bei einer Aufsichtsbehörde. Da die Reichweitenmessung keine Zuordnung zu Personen erlaubt, kann ich einzelne Datensätze in der Regel nicht einer Person zuordnen.</p>
+    </div>
+  </div>
+</Base>

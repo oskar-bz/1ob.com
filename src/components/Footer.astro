@@ -1,0 +1,38 @@
+---
+import { nav, site } from '../site';
+const year = new Date().getFullYear();
+---
+<footer class="wrap">
+  <div class="site-footer">
+    <div class="top">
+      <div class="say">
+        <p>{site.signoff}</p>
+        <a class="nl" href={`mailto:${site.email}`} style="--c: var(--orange)">Write to me</a>
+      </div>
+      <div class="dir">
+        <nav class="col" aria-label="Site">
+          <span class="lbl">Site</span>
+          <a href="/">Home</a>
+          {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+        </nav>
+        <nav class="col" aria-label="Elsewhere">
+          <span class="lbl">Elsewhere</span>
+          <a href={`mailto:${site.email}`}>Email</a>
+          <a href={site.github}>GitHub</a>
+          <a href={site.linkedin}>LinkedIn</a>
+          <a href="/rss.xml">RSS</a>
+        </nav>
+      </div>
+    </div>
+    <div class="legal">
+      <span class="keys" aria-label="Keyboard shortcuts">
+        <span><kbd>g</kbd><kbd>p</kbd>projects</span>
+        <span><kbd>g</kbd><kbd>w</kbd>writing</span>
+        <span><kbd>g</kbd><kbd>h</kbd>home</span>
+      </span>
+      <span style="display: flex; flex-wrap: wrap; gap: 8px 20px">
+        <span>© {year} {site.name}</span><a href="/impressum/">Impressum</a><a href="/datenschutz/">Datenschutz</a>
+      </span>
+    </div>
+  </div>
+</footer>

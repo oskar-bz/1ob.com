@@ -1,0 +1,72 @@
+---
+// Wide screens: dashes in the right margin, opening into a panel on hover.
+// Below 1200px: a button whose lines mirror the outline, opening a bottom sheet.
+interface Props { headings: { depth: number; slug: string; text: string }[] }
+const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+{items.length >= 3 && (
+  <>
+    <nav class="toc" aria-label="On this page">
+      <div class="rail" aria-hidden="true">
+        {items.map((h) => <span class={`dash l${h.depth}`} data-for={h.slug}></span>)}
+      </div>
+      <div class="panel">
+        <div class="card">
+          <span class="lbl" style="padding: 4px 10px 8px">On this page</span>
+          {items.map((h) => <a class={`ti l${h.depth}`} href={`#${h.slug}`} data-for={h.slug}><span class="m" aria-hidden="true"></span>{h.text}</a>)}
+        </div>
+      </div>
+    </nav>
+
+    <button class="toc-fab" type="button" aria-label="On this page" aria-expanded="false" aria-controls="toc-sheet">
+      {items.slice(0, 8).map((h) => <i class={`l${h.depth}`} data-for={h.slug}></i>)}
+    </button>
+    <div class="toc-sheet" id="toc-sheet" role="dialog" aria-modal="true" aria-label="On this page">
+      <button class="bd" type="button" tabindex="-1" aria-label="Close"></button>
+      <nav class="sheet-in">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px 4px 12px">
+          <span class="lbl">On this page</span><button class="x" type="button">Close</button>
+        </div>
+        <div style="height: 1px; background: var(--rule); margin: 0 12px 6px"></div>
+        {items.map((h) => <a class={`ti l${h.depth}`} href={`#${h.slug}`} data-for={h.slug}><span class="m" aria-hidden="true"></span>{h.text}</a>)}
+      </nav>
+    </div>
+  </>
+)}
+
+<script>
+  const marks = document.querySelectorAll<HTMLElement>('[data-for]');
+  if (marks.length) {
+    // Scroll spy: the heading closest above the upper third of the screen is current.
+    const ids = [...new Set([...marks].map((m) => m.dataset.for!))];
+    const heads = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const setOn = (id: string) => marks.forEach((m) => {
+      const on = m.dataset.for === id;
+      m.classList.toggle('on', on);
+      if (m.tagName === 'A') on ? m.setAttribute('aria-current', 'location') : m.removeAttribute('aria-current');
+    });
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const line = innerHeight * 0.3;
+      let cur = heads[0];
+      for (const h of heads) { if (h.getBoundingClientRect().top <= line) cur = h; else break; }
+      if (cur) setOn(cur.id);
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    update();
+
+    // Sheet (narrow screens)
+    const fab = document.querySelector<HTMLButtonElement>('.toc-fab');
+    const sheet = document.getElementById('toc-sheet');
+    if (fab && sheet) {
+      const set = (open: boolean) => { sheet.classList.toggle('open', open); fab.setAttribute('aria-expanded', String(open)); };
+      fab.addEventListener('click', () => set(true));
+      sheet.addEventListener('click', (e) => {
+        const t = e.target as HTMLElement;
+        if (t.closest('.bd, .x, a')) set(false);
+      });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+    }
+  }
+</script>

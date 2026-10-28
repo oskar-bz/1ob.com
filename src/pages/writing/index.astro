@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, isoDate, readingTime, vtName } from '../../lib/util';
+
+const posts = await getPosts();
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+const years = [...new Set(posts.map((p) => p.data.date.getFullYear()))].sort((a, b) => b - a);
+---
+<Base title="Writing" description="Notes from the projects, published when there's something worth saying.">
+  <div class="wrap">
+    <section class="page-head">
+      <h1>Writing</h1>
+      <p>Notes from the projects, published when there's something worth saying. One sentence on each says what it found.</p>
+      <a class="nl" href="/rss.xml" style="--c: var(--blue); align-self: flex-start">Subscribe via RSS</a>
+    </section>
+
+    {tags.length > 1 && (
+      <div class="chips" role="group" aria-label="Filter by topic" data-filter="tag" style="--accent: var(--blue)">
+        <button class="chip" type="button" data-v="all" aria-pressed="true">All <span class="n tab">{posts.length}</span></button>
+        {tags.map((t) => (
+          <button class="chip" type="button" data-v={t} aria-pressed="false">{t} <span class="n tab">{posts.filter((p) => p.data.tags.includes(t)).length}</span></button>
+        ))}
+      </div>
+    )}
+
+    <div class="years">
+      {years.map((y) => (
+        <section class="yr" data-year>
+          <h2>{y}</h2>
+          <div>
+            {posts.filter((p) => p.data.date.getFullYear() === y).map((p) => (
+              <a href={`/writing/${p.id}/`} class="ent" data-tags={p.data.tags.join('|')}>
+                <time class="date" datetime={isoDate(p.data.date)}>{isoDate(p.data.date).slice(5)}</time>
+                <span style="display: flex; flex-direction: column; gap: 6px">
+                  <span class="t" style={`view-transition-name: ${vtName('w', p.id)}`}>{p.data.title}</span>
+                  <p>{p.data.dek}</p>
+                  {p.data.tags.length > 0 && <span class="tags">{p.data.tags.join(' · ')}</span>}
+                </span>
+                <span class="date rt" style="text-align: right">{readingTime(p.body)} min</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-filter="tag"]');
+  if (bar) {
+    bar.classList.add('ready');
+    bar.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+      if (!b) return;
+      bar.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+      const v = b.dataset.v!;
+      document.querySelectorAll<HTMLElement>('.ent').forEach((r) => { r.hidden = v !== 'all' && !r.dataset.tags!.split('|').includes(v); });
+      // hide a year when all of its entries are hidden
+      document.querySelectorAll<HTMLElement>('[data-year]').forEach((y) => { y.hidden = !y.querySelector('.ent:not([hidden])'); });
+    });
+  }
+</script>
