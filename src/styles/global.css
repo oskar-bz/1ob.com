@@ -469,9 +469,9 @@ html[data-entry] .w, html[data-entry] .rise { animation: rise .7s var(--ease) bo
    - the header is identical on both sides and simply stays put
    - a title shared by list and page (same view-transition-name) moves and scales into place
    - everything else on the new page rises in behind it (.rise with --d, gated by html[data-vt])
-   The opt-in is unconditional so both documents always agree; reduced motion is handled
+   The opt-in (@view-transition) is inline in Base.astro's head so it is known before the body
+   is parsed. It is unconditional so both documents always agree; reduced motion is handled
    in the head script by skipping the transition. */
-@view-transition { navigation: auto; }
 
 @keyframes vt-out { to { opacity: 0; } }
 @keyframes vt-in  { from { opacity: 0; } }

@@ -4,6 +4,11 @@ import '@fontsource-variable/literata/opsz-italic.css';
 import '@fontsource-variable/geist/wght.css';
 import '@fontsource-variable/geist-mono/wght.css';
 import '../styles/global.css';
+// The latin subsets every page uses; preloaded so they are ready by first paint instead of
+// being discovered only after the stylesheet has been parsed.
+import serifFont from '@fontsource-variable/literata/files/literata-latin-opsz-normal.woff2?url';
+import sansFont from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
+import monoFont from '@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../site';
@@ -37,6 +42,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
   <meta property="og:url" content={canonical} />
   <meta property="og:site_name" content={site.domain} />
   <meta name="twitter:card" content="summary" />
+  {[serifFont, sansFont, monoFont].map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
+  <!-- View-transition opt-in, inline rather than in global.css: Chrome reads it when the parser
+       reaches <body>, and an external stylesheet still loading at that point (cold cache,
+       DevTools "Disable cache") makes the incoming page abort the transition with
+       "InvalidStateError: ViewTransition opt-in disabled". -->
+  <style is:inline>@view-transition { navigation: auto; }</style>
   <!-- Entry animation only on the first page of a visit. Decided from the referrer,
        so nothing is stored on the visitor's device (§ 25 TDDDG). -->
   <script is:inline>
