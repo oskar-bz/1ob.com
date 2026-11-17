@@ -1,14 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import Roadmap from '../components/Roadmap.astro';
-import Status from '../components/Status.astro';
-import Brackets from '../components/Brackets.astro';
+// Projects are hidden while the site is under construction; restore them with the section below.
+// import Roadmap from '../components/Roadmap.astro';
+// import Status from '../components/Status.astro';
+// import Brackets from '../components/Brackets.astro';
 import { site } from '../site';
-import { getProjects, getPosts, isoDate, readingTime, pad, vtName } from '../lib/util';
+import { /* getProjects, pad, */ getPosts, isoDate, readingTime, vtName } from '../lib/util';
 
-const projects = await getProjects();
-const featured = projects.filter((p) => p.data.featured).sort((a, b) => a.data.featured! - b.data.featured!);
-const [lead, ...also] = featured;
+// const projects = await getProjects();
+// const featured = projects.filter((p) => p.data.featured).sort((a, b) => a.data.featured! - b.data.featured!);
+// const [lead, ...also] = featured;
 const posts = await getPosts();
 const [latest, ...older] = posts;
 const words = site.headline.split(' ');
@@ -22,8 +23,10 @@ const words = site.headline.split(' ');
         <span class="lbl" style="color: var(--ink)">Say hi</span>
         <span class="hi"><a href={`mailto:${site.email}`}>email</a><a href={site.github}>github</a><a href={site.linkedin}>linkedin</a><a href="/rss.xml">rss</a></span>
       </div>
+      <p class="lbl rise" style={`margin: 0; --d: ${180 + words.length * 32}ms`}>This site is under construction. More writing and the projects are on their way.</p>
     </section>
 
+    {/* Projects, hidden while the site is under construction.
     {lead && (
       <section class="home-sec rise" aria-labelledby="h-projects" style={`--d: ${260 + words.length * 32}ms; --dv: 140ms`}>
         <div class="sec-head">
@@ -59,6 +62,8 @@ const words = site.headline.split(' ');
         )}
       </section>
     )}
+
+    */}
 
     {latest && (
       <section class="home-sec rise" aria-labelledby="h-writing" style={`padding-top: 128px; --d: ${380 + words.length * 32}ms; --dv: 200ms`}>

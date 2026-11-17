@@ -1,4 +1,5 @@
 ---
+draft: true   # hidden while the site is under construction
 title: Static site generator
 order: 7
 summary: Markdown and Jinja in, a site out.

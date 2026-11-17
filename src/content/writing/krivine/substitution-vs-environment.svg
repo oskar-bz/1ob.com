@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 230" role="img" aria-labelledby="f1-title f1-desc">
+  <title id="f1-title">Substitution versus environment</title>
+  <desc id="f1-desc">Applying λx. f x x to (g a). Substitution produces f (g a) (g a), a copy of the body with the argument pasted in twice. With an environment, the body f x x stays as it is, and both occurrences of x point to one entry, x ↦ (g a).</desc>
+  <defs>
+    <marker id="f1-head-muted" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto">
+      <path class="fill-muted" d="M0,0 L8,4 L0,8 z"/>
+    </marker>
+    <marker id="f1-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto">
+      <path class="fill-accent" d="M0,0 L8,4 L0,8 z"/>
+    </marker>
+  </defs>
+
+  <!-- Step 1: substitution -->
+  <text class="label" x="20" y="28">Step 1 · substitution</text>
+  <text class="code" x="20" y="78" textLength="170" lengthAdjust="spacingAndGlyphs">(λx. f x x) (g a)</text>
+  <path class="line-muted" d="M105,92 V122" marker-end="url(#f1-head-muted)"/>
+  <rect class="wash" x="36" y="132" width="58" height="26" rx="4"/>
+  <rect class="wash" x="96" y="132" width="58" height="26" rx="4"/>
+  <text class="code" x="20" y="151" textLength="10">f</text>
+  <text class="code" x="40" y="151" textLength="50" lengthAdjust="spacingAndGlyphs">(g a)</text>
+  <text class="code" x="100" y="151" textLength="50" lengthAdjust="spacingAndGlyphs">(g a)</text>
+  <text x="20" y="194">Each call copies the body and</text>
+  <text x="20" y="214">pastes the argument into it.</text>
+
+  <!-- Step 2: environment -->
+  <text class="label" x="370" y="28">Step 2 · environment</text>
+  <text class="code" x="370" y="78" textLength="10">f</text>
+  <text class="code" x="390" y="78" textLength="10">x</text>
+  <text class="code" x="410" y="78" textLength="10">x</text>
+  <text x="440" y="77">the body, unchanged</text>
+  <path class="line" d="M395,86 C395,108 392,108 392,124" marker-end="url(#f1-head)"/>
+  <path class="line" d="M415,86 C415,108 418,108 418,124" marker-end="url(#f1-head)"/>
+  <rect class="box" x="366" y="128" width="112" height="32" rx="6"/>
+  <text class="code" x="376" y="150" textLength="90" lengthAdjust="spacingAndGlyphs">x ↦ (g a)</text>
+  <text x="490" y="149">the environment</text>
+  <text x="370" y="194">The body is never copied. The environment</text>
+  <text x="370" y="214">records what its variables stand for.</text>
+</svg>

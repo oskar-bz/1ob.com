@@ -1,4 +1,5 @@
 ---
+draft: true   # hidden while the site is under construction
 title: Terminal task manager
 order: 8
 summary: Nested tasks, priorities, plain-text export.

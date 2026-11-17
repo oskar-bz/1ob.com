@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 340" role="img" aria-labelledby="f6-title f6-desc">
+  <title id="f6-title">The heap before and after a collection</title>
+  <desc id="f6-desc">Eight environments, numbered 0 to 7 from oldest to newest. Every arrow points left, from an environment to an older one it refers to. The roots, the closure being evaluated and a closure on the stack, refer to environments 6 and 2. Following the arrows from them reaches 6, 4, 2, 1 and 0; environments 3, 5 and 7 are unreachable. After compacting, the five survivors occupy indices 0 to 4 in their original order, and every arrow still points left.</desc>
+  <defs>
+    <marker id="f6-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-accent" d="M0,0 L8,4 L0,8 z"/>
+    </marker>
+    <marker id="f6-head-faint" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-faint" d="M0,0 L8,4 L0,8 z"/>
+    </marker>
+    <marker id="f6-head-muted" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="fill-muted" d="M0,0 L8,4 L0,8 z"/>
+    </marker>
+  </defs>
+
+  <!-- Before: cell i spans x = 100 + 68 i .. +52, centre 126 + 68 i, top at y = 90 -->
+  <text class="label" x="10" y="115">Before</text>
+  <!-- references: 1→0, 2→1, 2→0, 3→0, 4→2, 5→3, 5→1, 6→4, 6→2, 7→5 -->
+  <path class="line" d="M194,90 C194,66 130,66 130,88" marker-end="url(#f6-head)"/>
+  <path class="line" d="M262,90 C262,66 198,66 198,88" marker-end="url(#f6-head)"/>
+  <path class="line" d="M256,90 C256,50 126,50 126,88" marker-end="url(#f6-head)"/>
+  <path class="line-faint" d="M330,90 C330,40 122,40 122,88" marker-end="url(#f6-head-faint)"/>
+  <path class="line" d="M398,90 C398,56 266,56 266,88" marker-end="url(#f6-head)"/>
+  <path class="line-faint" d="M466,90 C466,60 334,60 334,88" marker-end="url(#f6-head-faint)"/>
+  <path class="line-faint" d="M460,90 C460,30 194,30 194,88" marker-end="url(#f6-head-faint)"/>
+  <path class="line" d="M534,90 C534,60 402,60 402,88" marker-end="url(#f6-head)"/>
+  <path class="line" d="M528,90 C528,22 262,22 262,88" marker-end="url(#f6-head)"/>
+  <path class="line-faint" d="M602,90 C602,62 470,62 470,88" marker-end="url(#f6-head-faint)"/>
+
+  <rect class="box" x="100" y="90" width="52" height="40" rx="6"/>
+  <rect class="box" x="168" y="90" width="52" height="40" rx="6"/>
+  <rect class="box" x="236" y="90" width="52" height="40" rx="6"/>
+  <rect class="line-faint dash" x="304" y="90" width="52" height="40" rx="6"/>
+  <rect class="box" x="372" y="90" width="52" height="40" rx="6"/>
+  <rect class="line-faint dash" x="440" y="90" width="52" height="40" rx="6"/>
+  <rect class="box" x="508" y="90" width="52" height="40" rx="6"/>
+  <rect class="line-faint dash" x="576" y="90" width="52" height="40" rx="6"/>
+  <g text-anchor="middle">
+    <text class="code" x="126" y="116">0</text>
+    <text class="code" x="194" y="116">1</text>
+    <text class="code" x="262" y="116">2</text>
+    <text class="code faint" x="330" y="116">3</text>
+    <text class="code" x="398" y="116">4</text>
+    <text class="code faint" x="466" y="116">5</text>
+    <text class="code" x="534" y="116">6</text>
+    <text class="code faint" x="602" y="116">7</text>
+  </g>
+
+  <!-- Roots -->
+  <path class="line-muted" d="M262,166 V134" marker-end="url(#f6-head-muted)"/>
+  <path class="line-muted" d="M534,166 V134" marker-end="url(#f6-head-muted)"/>
+  <g text-anchor="middle">
+    <text x="262" y="184">on the stack</text>
+    <text x="534" y="184">being evaluated</text>
+  </g>
+
+  <!-- After: survivors 0, 1, 2, 4, 6 become 0 to 4 -->
+  <text class="label" x="10" y="295">After</text>
+  <!-- references: 1→0, 2→1, 2→0, 3→2, 4→3, 4→2 -->
+  <path class="line" d="M194,270 C194,246 130,246 130,268" marker-end="url(#f6-head)"/>
+  <path class="line" d="M262,270 C262,246 198,246 198,268" marker-end="url(#f6-head)"/>
+  <path class="line" d="M256,270 C256,226 126,226 126,268" marker-end="url(#f6-head)"/>
+  <path class="line" d="M330,270 C330,246 266,246 266,268" marker-end="url(#f6-head)"/>
+  <path class="line" d="M398,270 C398,246 334,246 334,268" marker-end="url(#f6-head)"/>
+  <path class="line" d="M392,270 C392,218 262,218 262,268" marker-end="url(#f6-head)"/>
+  <rect class="box" x="100" y="270" width="52" height="40" rx="6"/>
+  <rect class="box" x="168" y="270" width="52" height="40" rx="6"/>
+  <rect class="box" x="236" y="270" width="52" height="40" rx="6"/>
+  <rect class="box" x="304" y="270" width="52" height="40" rx="6"/>
+  <rect class="box" x="372" y="270" width="52" height="40" rx="6"/>
+  <g text-anchor="middle">
+    <text class="code" x="126" y="296">0</text>
+    <text class="code" x="194" y="296">1</text>
+    <text class="code" x="262" y="296">2</text>
+    <text class="code" x="330" y="296">3</text>
+    <text class="code" x="398" y="296">4</text>
+    <text x="126" y="332">was 0</text>
+    <text x="194" y="332">was 1</text>
+    <text x="262" y="332">was 2</text>
+    <text x="330" y="332">was 4</text>
+    <text x="398" y="332">was 6</text>
+  </g>
+</svg>

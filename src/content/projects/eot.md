@@ -1,4 +1,5 @@
 ---
+draft: true   # hidden while the site is under construction
 title: End-of-turn detection
 order: 4
 featured: 4

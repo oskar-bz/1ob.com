@@ -1,0 +1,391 @@
+---
+title: Deriving the Krivine machine
+dek: Four routine program transformations turn the textbook definition of the lambda calculus into Krivine's abstract machine. The same derivation hands its garbage collector a heap that can be collected in two linear passes.
+date: 2026-11-17
+tags: [Programming Languages, Compilers]
+---
+
+import SubstitutionVsEnvironment from './krivine/substitution-vs-environment.svg';
+import DeBruijn from './krivine/de-bruijn.svg';
+import TermToCode from './krivine/term-to-code.svg';
+import Timings from './krivine/timings.svg';
+import Heap from './krivine/heap.svg';
+
+A compiler is a long sequence of rewrites, each of which turns a program into another program that means the same thing. None of them is clever on its own. I had always assumed that abstract machines were a different kind of object, designed by someone with an insight, until I read how the Krivine machine can be derived. In 1985 Jean-Louis Krivine described a machine that evaluates the lambda calculus with three registers and three rules.<Sidenote>The note circulated in manuscript for more than twenty years before it was published: Jean-Louis Krivine, “A call-by-name lambda-calculus machine,” *Higher-Order and Symbolic Computation* 20, 2007.</Sidenote> In 2003 Mads Sig Ager, Dariusz Biernacki, Olivier Danvy and Jan Midtgaard showed that four standard rewrites of the textbook evaluator produce it.<Sidenote>“A functional correspondence between evaluators and abstract machines,” *PPDP* 2003. The same method derives other well-known machines from other evaluators.</Sidenote>
+
+I wanted to see the derivation happen in code that runs. This post carries it out in eight steps, from a forty-line Python interpreter for the textbook rule to a virtual machine in C++ with its own garbage collector. Each step is a small change to the one before, and all of them compute the same results; the test suite runs every program through every step. The collector at the end needs no cleverness either. It relies on a property of the heap that the earlier steps produce without anyone asking for it.
+## A language with three constructs
+
+The lambda calculus has variables, functions written `λx. body`, and applications `f a`, which call `f` with the argument `a`. There are no numbers, no booleans and no loops. Programs build them out of functions.
+
+<details class="fold">
+<summary>The lambda calculus, for readers new to it</summary>
+
+A term is one of three things. A variable is a name, such as `x`. A function `λx. body` takes one argument, which is called `x` inside `body`; it is Python's `lambda x: body` without the keyword. An application `f a` calls `f` with `a`. Application groups to the left, so `f a b` means `(f a) b`, and a function of two arguments is a function that returns another function: `λx y. body` is shorthand for `λx. λy. body`.
+
+Computation has a single rule, called beta reduction. An application whose function is a λ is replaced by the λ's body, with the argument substituted for the parameter:
+
+```
+(λx y. x) a b  →  (λy. a) b  →  a
+```
+
+A variable is bound if a λ around it introduces it, and free otherwise. In `λx. x y`, `x` is bound and `y` is free. Renaming a bound variable does not change a term's meaning, so `λx. x` and `λz. z` are the same function. Renaming a free variable does.
+
+Data is made of functions. A boolean chooses between two arguments, so `true = λa b. a`, `false = λa b. b`, and `if c then t else e` is the application `c t e`. A number n is the function that applies its first argument n times to its second:
+
+```
+two S Z  =  (λf x. f (f x)) S Z  →  (λx. S (S x)) Z  →  S (S Z)
+```
+
+Arithmetic follows from there. `succ = λn f x. f (n f x)` applies `f` once more than `n` does, and addition and multiplication are similar one-liners. Recursion needs no special construct either. With `fix = λf. (λx. f (x x)) (λx. f (x x))`,
+
+```
+fix g  →  (λx. g (x x)) (λx. g (x x))  →  g ((λx. g (x x)) (λx. g (x x)))
+```
+
+and the argument `g` receives reduces the same way again, so `g` has a way to call itself.
+
+When a term contains several applications that could be reduced, the choice affects how much work is done and whether evaluation ends at all. Let `loop` be `(λx. x x) (λx. x x)`, which reduces to itself forever. Then `(λx y. y) loop z` gives `z` if the outermost application is reduced first, and never finishes if the argument is evaluated first. Reducing the outermost application first, without evaluating arguments beforehand, is called call-by-name. It is the order this post uses throughout.
+
+</details>
+
+The programs in this post look like this:
+
+```
+zero = λf x. x
+succ = λn f x. f (n f x)
+two  = succ (succ zero)
+main = two S Z
+```
+
+A program is a list of definitions, and its value is the last one.<Sidenote>A definition `name = value` followed by the rest of the program means `(λname. rest) value`, so the evaluators never see definitions.</Sidenote> `S` and `Z` are defined nowhere. When evaluation reaches a variable without a definition, it stops, and the result is that variable applied to whatever arguments it has collected. The program above prints `(S (S Z))`. Free variables give programs a way to show their results without adding data types to the language.
+
+An argument is passed unevaluated and evaluated again each time it is used, and evaluation stops as soon as the outermost shape of the result is known: a function, or a free variable with its arguments. This strategy, call-by-name evaluation to weak head normal form, is the one Krivine's machine implements. To print `(S (S Z))` in full, the printer evaluates the arguments of a stuck variable one after another. A function prints as `<function>`, because its body is evaluated only when it is called.
+
+## Step 1: substitution
+
+The textbook rule says that to apply `λx. body` to an argument, you replace every `x` in `body` with the argument and evaluate the result.
+
+```python
+def evaluate(term: Term) -> Lam | Stuck:
+    match term:
+        case Var(name):
+            # Substitution has replaced every bound variable, so this one is free.
+            return Stuck(name, [])
+        case Lam():
+            return term
+        case App(fun, arg):
+            match evaluate(fun):
+                case Lam(param, body):
+                    return evaluate(substitute(body, param, arg))
+                case Stuck(head, args):
+                    return Stuck(head, args + [arg])
+```
+
+The difficulty is hidden in `substitute`. Applying `λx. λy. x` to the free variable `y` should produce a function that ignores its argument and returns `y`. Pasting `y` in for `x` produces `λy. y` instead, the identity function, because the inner `λy` captures the `y` that was free. `substitute` has to detect this and rename the inner parameter first, to `λy'. y`. Choosing the new name has two further traps, and the test suite has a case for each.<Sidenote>The new name must not occur free in the body, and it must differ from the variable being replaced. A version of `substitute` that ignored both still passed my first tests.</Sidenote>
+
+The rule is correct, and it is slow. Every call copies the body of the function, and deciding whether to rename requires walking the argument as well. Computed this way, the fifteenth Fibonacci number takes 92 seconds.
+
+## Step 2: remembering instead of copying
+
+The second evaluator leaves the body alone and records what its variables stand for. That record is the environment. A term paired with the environment it must be evaluated in is a closure, and arguments are passed as closures, so that when they are eventually evaluated, their variables mean what they meant where the argument was written.
+
+<Figure n="F1" caption="Substitution builds a new term for every call. An environment leaves the body as it is and binds the parameter once, however often the body uses it." frame pad>
+  <SubstitutionVsEnvironment />
+</Figure>
+
+Looking variables up by name would bring back the comparisons that made renaming necessary. The evaluator uses de Bruijn indices instead, replacing each variable with the number of λs between it and the λ that binds it.<Sidenote>N. G. de Bruijn introduced them in 1972, while building Automath, one of the first proof checkers.</Sidenote> If the environment lists the arguments of the enclosing λs innermost first, variable n is the n-th entry. With the names gone, nothing can be captured, and there is nothing to rename.
+
+<Figure n="F2" caption="The same term with names and with de Bruijn indices. Index 1 skips one λ to reach its binder." frame pad>
+  <DeBruijn />
+</Figure>
+
+The environment is a linked list. Many closures can capture the same environment, and adding a binding for one call must not change it for the others; a linked list grows at the front in constant time and leaves the rest shared.
+
+```python
+def evaluate(term: Term, env: Env | None) -> Result:
+    match term:
+        case Var(index):
+            closure = lookup(env, index)
+            return evaluate(closure.term, closure.env)
+        case Free(name):
+            return Stuck(name, [])
+        case Lam(body):
+            return Function(body, env)
+        case App(fun, arg):
+            match evaluate(fun, env):
+                case Function(body, fun_env):
+                    return evaluate(body, Env(Closure(arg, env), fun_env))
+                case Stuck(head, args):
+                    return Stuck(head, args + [Closure(arg, env)])
+```
+
+A `Closure` holds something not yet evaluated. A `Function` is the result of evaluating a λ: its body, and the environment it was created in. I keep the two types apart, so that a type checker can confirm that every evaluator returns either a function or a stuck variable. The fifteenth Fibonacci number now takes 1.67 seconds, 55 times faster than substitution.
+
+## Step 3: continuations
+
+One call in step 2 is not the last thing its caller does. After `evaluate(fun, env)` returns, Python must remember to apply the result to the argument, and that memory lives on Python's call stack, outside the program.
+
+Continuation-passing style brings it inside. Every call to `evaluate` receives one more argument, a function called the continuation, which is given the result and decides what happens next.
+
+```python
+def evaluate(term: Term, env: Env | None,
+             continuation: Callable[[Result], Result] = lambda result: result) -> Result:
+    match term:
+        case Var(index):
+            closure = lookup(env, index)
+            return evaluate(closure.term, closure.env, continuation)
+        case Free(name):
+            return continuation(Stuck(name, []))
+        case Lam(body):
+            return continuation(Function(body, env))
+        case App(fun, arg):
+            def apply_to_arg(result: Result) -> Result:
+                match result:
+                    case Function(body, fun_env):
+                        return evaluate(body, Env(Closure(arg, env), fun_env), continuation)
+                    case Stuck(head, args):
+                        return continuation(Stuck(head, args + [Closure(arg, env)]))
+
+            return evaluate(fun, env, apply_to_arg)
+```
+
+No call has anything left to do after it returns. Every call is a tail call. The evaluator has become twice as slow, at 3.24 seconds, because it allocates a Python function for every application. That price pays for the next two steps.
+
+## Step 4: the continuation is a stack
+
+Step 3 creates two kinds of continuation and no others. The default one returns the result. `apply_to_arg` holds two values: an argument closure, and the continuation to pass the final result to. In 1972 John Reynolds showed how to replace functions like these with data.<Sidenote>In “Definitional interpreters for higher-order programming languages.” The technique is now called defunctionalization.</Sidenote> Each kind becomes a record of the values it holds, and one procedure, here called `resume`, does what the functions used to do.
+
+```python
+@dataclass(frozen=True, slots=True)
+class Done:
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ApplyTo:
+    arg: Closure
+    rest: Continuation
+
+
+def evaluate(term: Term, env: Env | None, continuation: Continuation = Done()) -> Result:
+    match term:
+        case Var(index):
+            closure = lookup(env, index)
+            return evaluate(closure.term, closure.env, continuation)
+        case Free(name):
+            return resume(continuation, Stuck(name, []))
+        case Lam(body):
+            return resume(continuation, Function(body, env))
+        case App(fun, arg):
+            return evaluate(fun, env, ApplyTo(Closure(arg, env), continuation))
+
+
+def resume(continuation: Continuation, result: Result) -> Result:
+    match continuation:
+        case Done():
+            return result
+        case ApplyTo(arg, rest):
+            match result:
+                case Function(body, fun_env):
+                    return evaluate(body, Env(arg, fun_env), rest)
+                case Stuck(head, args):
+                    return resume(rest, Stuck(head, args + [arg]))
+```
+
+A continuation is now a chain, `ApplyTo(a1, ApplyTo(a2, Done()))`: the arguments waiting for a function, nearest first. Step 2 kept this stack on Python's call stack. Step 4 holds it in a variable.
+
+## Step 5: the machine
+
+Every call in step 4 is a tail call, so neither `evaluate` nor `resume` ever has to return to its caller. Each call is a jump that gives new values to three variables: the term, its environment and the continuation. Writing the jumps as a loop, and folding `resume` into the two places that called it, leaves this:
+
+```python
+def evaluate(term: Term, env: Env | None) -> Result:
+    stack: list[Closure] = []  # the arguments waiting for a function; the last is the next one
+    while True:
+        match term:
+            case Var(index):
+                closure = lookup(env, index)
+                term, env = closure.term, closure.env
+            case Free(name):
+                return Stuck(name, list(reversed(stack)))
+            case Lam(body):
+                if not stack:
+                    return Function(body, env)
+                term, env = body, Env(stack.pop(), env)
+            case App(fun, arg):
+                stack.append(Closure(arg, env))
+                term = fun
+```
+
+This is the Krivine machine. An application pushes its argument and continues with the function. A λ pops an argument into the environment and continues with its body. A variable continues with the closure it stands for. The fourth case, for free variables, is this project's addition: it stops, and everything still on the stack becomes the arguments of the stuck variable.
+
+<Figure n="F3" caption="The machine evaluating (λx y. x y) S Z. The machine uses indices; the table shows names. The stack lists its top first." pad>
+
+| | term | environment | stack | rule |
+|---|---|---|---|---|
+| 1 | `(λx y. x y) S Z` | | | application: push `Z` |
+| 2 | `(λx y. x y) S` | | `Z` | application: push `S` |
+| 3 | `λx. λy. x y` | | `S` `Z` | λ: take `S` as `x` |
+| 4 | `λy. x y` | `x = S` | `Z` | λ: take `Z` as `y` |
+| 5 | `x y` | `y = Z`, `x = S` | | application: push `y` |
+| 6 | `x` | `y = Z`, `x = S` | `y` | variable: continue with `S` |
+| 7 | `S` | | `y` | free variable: stop |
+
+</Figure>
+
+The `y` on the stack in rows 6 and 7 is a closure that carries the environment of row 5 with it. The machine stops with `S` applied to that closure, and the printer evaluates the closure to `Z`, producing `(S Z)`.
+
+One change of data structure comes with the loop. Each continuation in step 4 is used exactly once and never shared, so the chain can become a mutable Python list. Environments cannot follow, because every closure that captured one still refers to it; they remain immutable linked lists. Nothing in the loop uses Python's call stack anymore.<Sidenote>Steps 1 to 4 recurse once per evaluation step. They work only because Python 3.11 stopped consuming the C stack for calls between Python functions, and because the benchmark raises Python's recursion limit to a million.</Sidenote>
+
+The loop is the most explicit of the five evaluators and the fastest, at 1.35 seconds for the fifteenth Fibonacci number.
+
+## Step 6: compiling the term away
+
+The machine examines one term node per step, and two of its rules continue with a child of that node: a λ with its body, an application with its function. If every term is laid out in memory with that child directly after it, the machine no longer needs pointers into a tree. A program counter that moves forward will do. Each node becomes one instruction:
+
+| term | instruction | followed by |
+|---|---|---|
+| `λ body` | `GRAB` | the code of the body |
+| `fun arg` | `PUSH a` | the code of the function; `a` is the address of the argument's code |
+| variable n | `ACCESS n` | |
+| free variable `x` | `FREE x` | |
+
+The compiler makes one decision, where to put each argument's code. It places it after the function's code, and fills in the address of the `PUSH` once it is known.
+
+```python
+def emit(term: Term) -> None:
+    match term:
+        case Var(index):
+            code.append(f"ACCESS {index}")
+        case Free(name):
+            code.append(f"FREE {name}")
+        case Lam(body):
+            code.append("GRAB")
+            emit(body)
+        case App(fun, arg):
+            push = len(code)
+            code.append("PUSH")
+            emit(fun)
+            code[push] = f"PUSH {len(code)}"
+            emit(arg)
+```
+
+<Figure n="F4" caption="The term from F3 and its code. Solid edges lead to the node whose instruction comes next in memory; dashed edges lead to arguments, which each PUSH reaches by address." frame pad>
+  <TermToCode />
+</Figure>
+
+The code is the term itself, flattened. The machine's rules do not change: `GRAB` takes the next argument into the environment, `PUSH` pushes the closure of the argument's address and the current environment, `ACCESS` continues with the closure a variable stands for, and `FREE` stops.
+
+## Step 7: the machine in C++
+
+The C++ machine runs the loop of step 5 with the term replaced by a code address. Its data lives in flat arrays that refer to one another by 32-bit index, so a closure is a code address and an environment index, and an environment is a linked list running through one array:
+
+```cpp
+struct Instruction { Op op; Index operand; };  // 8 bytes
+struct Closure { Index code; Index env; };     // 8 bytes
+struct Env { Closure first; Index rest; };     // 12 bytes
+```
+
+Creating an environment appends twelve bytes to an array. The loop itself is a transcription of step 5:
+
+```cpp
+const Instruction& evaluate(Closure closure) {
+    for (;;) {
+        const Instruction& instruction = code[closure.code];
+        switch (instruction.op) {
+        case Op::Grab:
+            if (stack.empty()) return instruction;
+            envs.push_back({stack.back(), closure.env});
+            stack.pop_back();
+            closure = {closure.code + 1, Index(envs.size() - 1)};
+            break;
+        case Op::Push:
+            stack.push_back({instruction.operand, closure.env});
+            closure.code += 1;
+            break;
+        case Op::Access: {
+            Index env = closure.env;
+            for (Index i = 0; i < instruction.operand; ++i) env = envs[env].rest;
+            closure = envs[env].first;
+            break;
+        }
+        case Op::Free:
+            return instruction;
+        }
+    }
+}
+```
+
+It computes the fifteenth Fibonacci number in 20 milliseconds, of which about 5 are spent starting the process. On the twentieth, step 5 takes 20.7 seconds and the C++ machine 0.23. Ackermann's function of 3 and 8 takes 844 million machine steps, which the loop executes in 5.2 seconds, about 160 million per second.
+
+<Figure n="F5" caption="Time to compute the fifteenth Fibonacci number, on a logarithmic scale. Step 6 is the compiler, which steps 7 and 8 share." frame pad>
+  <Timings />
+</Figure>
+
+## Step 8: a garbage collector
+
+Step 7 never frees anything. The twentieth Fibonacci number allocates 21 million environments, and the process peaks at 414 megabytes; the twenty-fifth peaks at 7 gigabytes.
+
+An environment is garbage once no closure the machine can still use refers to it, directly or through other environments. The closures the machine can still use, the roots, are the one being evaluated, those on the stack, and those the printer has yet to evaluate.
+
+The derivation has given the heap an unusual shape. Environments are created in exactly one place, by `GRAB`, out of a closure from the stack and the current environment, both of which already exist. Nothing changes an environment afterwards. Every environment therefore refers only to environments older than itself, which sit at lower indices in the array, and the heap is a graph whose edges all point the same way.
+
+<Figure n="F6" caption="Every reference points to an older environment. Marking walks from the newest to the oldest; compacting walks from the oldest to the newest and slides the survivors down." frame pad>
+  <Heap />
+</Figure>
+
+That shape reduces collection to two passes over one array. The first marks every environment a root refers to, then walks from the newest environment to the oldest; when it reaches an environment, everything that could refer to it has already been visited, so the mark is final, and a marked environment passes the mark on to what it refers to. The second pass walks from the oldest environment to the newest and moves every marked one down to the next free index, translating its references through a table of new indices. The survivors keep their order, so the property holds for the next collection. The collector needs no mark stack, no recursion and no second heap.
+
+```cpp
+void collect(Closure& current) {
+    constexpr Index unreachable = UINT32_MAX;
+    constexpr Index reachable = 0;  // until compacting gives it its new index
+    std::vector<Index> new_index(envs.size(), unreachable);
+
+    auto mark = [&](Index env) {
+        if (env != empty_env) new_index[env] = reachable;
+    };
+    for_each_root(current, mark);
+    for (std::size_t i = envs.size(); i-- > 0;) {  // newest first
+        if (new_index[i] == unreachable) continue;
+        mark(envs[i].first.env);
+        mark(envs[i].rest);
+    }
+
+    auto relocate = [&](Index& env) {
+        if (env != empty_env) env = new_index[env];
+    };
+    Index live = 0;
+    for (std::size_t i = 0; i < envs.size(); ++i) {  // oldest first
+        if (new_index[i] == unreachable) continue;
+        Env env = envs[i];
+        relocate(env.first.env);  // older environments, already moved
+        relocate(env.rest);
+        envs[live] = env;
+        new_index[i] = live++;
+    }
+    envs.resize(live);
+    for_each_root(current, relocate);
+    collect_at = std::max(min_heap, 2 * live);
+}
+```
+
+`GRAB` calls the collector once there are twice as many environments as survived the previous collection, which keeps the total cost of collecting proportional to the work the machine does.
+
+| program | step 7 | step 8 |
+|---|---|---|
+| Fibonacci (20) | 0.23 s, 414 MB | 0.17 s, 21 MB |
+| Fibonacci (25) | 3.82 s, 7,022 MB | 2.62 s, 23 MB |
+| 3¹² | 0.13 s, 133 MB | 0.11 s, 30 MB |
+| Ackermann (3, 8) | 5.29 s, 125 MB | 6.02 s, 85 MB |
+
+On most programs the collector makes the machine faster, because the environments it works with stay few enough to remain in the processor's cache. Ackermann's function is the exception. Most of what it allocates stays reachable, so each collection moves much and frees little, and the program runs 14 percent slower.
+
+To test the collector, the suite runs every program with a minimum heap of eight environments, so that the machine collects almost constantly. I also broke the collector on purpose in six ways, each omitting one root or one kind of reference, and checked that the tests fail. At first one broken version passed: a collector that forgot the closures waiting to be printed. Every program in the suite happened to keep those closures' environments reachable by another route, and the suite now includes one that does not.
+
+## What the machine still does badly
+
+Call-by-name evaluation repeats work. An argument is evaluated every time it is used, so the Fibonacci program computes `pred n` anew wherever `n - 1` is needed. The remedy is to evaluate an argument once and remember the result, which is lazy evaluation; going further, optimal reduction shares work even inside the bodies of functions. That is the subject of the next post.
+
+Variables are also slow to reach when their binder is far away. `ACCESS n` walks n links of a linked list, and the definitions at the top of a program are the farthest away of all. Real implementations copy the variables a closure needs into the closure itself, which makes every lookup a single step at the cost of copying when closures are created.

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" role="img" aria-labelledby="f5-title f5-desc">
+  <title id="f5-title">Time to compute the fifteenth Fibonacci number, per step</title>
+  <desc id="f5-desc">On a logarithmic scale: step 1, substitution, 91.5 seconds. Step 2, environments, 1.67 s. Step 3, continuations, 3.24 s. Step 4, defunctionalized, 2.85 s. Step 5, the machine, 1.35 s. Step 7, C++, 0.020 s. Step 8, C++ with garbage collector, 0.020 s.</desc>
+
+  <!-- x(v) = 170 + (log10(v) + 2) * 107.5, from 0.01 s to 100 s -->
+  <g class="grid">
+    <line x1="170" y1="22" x2="170" y2="262"/>
+    <line x1="277.5" y1="22" x2="277.5" y2="262"/>
+    <line x1="385" y1="22" x2="385" y2="262"/>
+    <line x1="492.5" y1="22" x2="492.5" y2="262"/>
+    <line x1="600" y1="22" x2="600" y2="262"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="170" y="286">0.01 s</text>
+    <text x="277.5" y="286">0.1 s</text>
+    <text x="385" y="286">1 s</text>
+    <text x="492.5" y="286">10 s</text>
+    <text x="600" y="286">100 s</text>
+  </g>
+
+  <g class="ink" text-anchor="end">
+    <text x="156" y="45">1 substitution</text>
+    <text x="156" y="79">2 environments</text>
+    <text x="156" y="113">3 continuations</text>
+    <text x="156" y="147">4 defunctionalized</text>
+    <text x="156" y="181">5 machine</text>
+    <text x="156" y="215">7 C++</text>
+    <text x="156" y="249">8 C++ with GC</text>
+  </g>
+
+  <g class="dot">
+    <circle cx="595.8" cy="40" r="5"/>
+    <circle cx="408.9" cy="74" r="5"/>
+    <circle cx="439.9" cy="108" r="5"/>
+    <circle cx="433.9" cy="142" r="5"/>
+    <circle cx="399.0" cy="176" r="5"/>
+    <circle cx="202.4" cy="210" r="5"/>
+    <circle cx="202.4" cy="244" r="5"/>
+  </g>
+
+  <g class="ink value">
+    <text x="610" y="45">91.5 s</text>
+    <text x="420" y="79">1.67 s</text>
+    <text x="451" y="113">3.24 s</text>
+    <text x="445" y="147">2.85 s</text>
+    <text x="410" y="181">1.35 s</text>
+    <text x="214" y="215">0.020 s</text>
+    <text x="214" y="249">0.020 s</text>
+  </g>
+</svg>

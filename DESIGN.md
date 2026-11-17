@@ -38,6 +38,8 @@ Direction: **annotated** — a reading-first serif page, labelled like engineeri
 | Roadmap tree | CSS-drawn lines and boxes (never font glyphs). Done = crossed and struck through, now = filled orange square in a frame, todo = empty. |
 | Brackets | Corner brackets on anything you can look at or play with. On the homepage lead they close in on hover. |
 | Margin note | In the margin beside its line. On narrow screens the number is a tap target that unfolds the note inline (CSS only). |
+| Diagram | An SVG file imported into an MDX post and inlined in a `Figure`, so it takes the page's fonts and tokens; the file carries classes, never colours. Below 720 px it keeps a 540 px minimum width and scrolls sideways, like code. |
+| Fold-out | `<details class="fold">` for a passage some readers can skip, such as background a specialist already knows. Same `[+]`/`[–]` summary as a comment thread; no headings inside, so the contents stay complete. |
 | Contents | Dashes in the right margin, vertically centred; the current section's dash is accented and longer. Hover opens a panel (fade, 6 px slide, blur). Narrow: a 48 px button bottom right whose lines mirror the outline, opening a bottom sheet. |
 | Copy button | The label swaps to "Copied" with opacity + blur + scale. |
 | Mobile menu | Two bars turn into ✕; items rise in 40 ms apart. |

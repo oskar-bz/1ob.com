@@ -1,4 +1,5 @@
 ---
+draft: true   # hidden while the site is under construction
 title: Stereo depth for fast drones
 order: 5
 summary: Census transform and SGM against a monocular network.

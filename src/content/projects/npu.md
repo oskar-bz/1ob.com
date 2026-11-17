@@ -1,4 +1,5 @@
 ---
+draft: true   # hidden while the site is under construction
 title: An NPU on an FPGA
 order: 3
 featured: 3

@@ -375,8 +375,28 @@ kbd { font: 500 11px/1 var(--mono); padding: 4px 6px; box-shadow: inset 0 0 0 1p
 .figure .body > img, .figure .body > video { display: block; width: 100%; }
 .figure .body.pad { padding: 28px; }
 .figure .ph { min-height: 260px; display: flex; align-items: center; justify-content: center; }
-.figure figcaption { float: right; width: var(--side); margin-right: calc(-1 * (var(--side) + var(--gutter))); display: flex; gap: 10px; font: 400 14px/1.55 var(--serif); color: var(--muted); text-wrap: pretty; }
+.figure figcaption { float: right; clear: right; width: var(--side); margin-right: calc(-1 * (var(--side) + var(--gutter))); display: flex; gap: 10px; font: 400 14px/1.55 var(--serif); color: var(--muted); text-wrap: pretty; }
 .figure figcaption b { flex: none; font: 500 11px/1.9 var(--mono); color: var(--accent); }
+
+/* diagrams: SVG files inlined into a figure, drawn with the tokens (sizes are in viewBox units) */
+.figure svg { display: block; width: 100%; height: auto; }
+.figure svg text { font: 400 14px var(--sans); fill: var(--muted); }
+.figure svg .code { font: 400 16px var(--mono); fill: var(--ink); }
+.figure svg .label { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.figure svg .address { font: 400 12px var(--mono); fill: var(--accent); }
+.figure svg .ink { fill: var(--ink); }
+.figure svg :is(.faint, .fill-faint) { fill: var(--faint); }
+.figure svg .value { font-variant-numeric: tabular-nums; }
+.figure svg .box { fill: var(--ground); stroke: var(--accent); stroke-width: 1.5; }
+.figure svg .wash { fill: var(--ground); }
+.figure svg :is(.line, .line-muted, .line-faint) { fill: none; stroke-width: 1.5; }
+.figure svg .line { stroke: var(--accent); }
+.figure svg .line-muted { stroke: var(--muted); }
+.figure svg .line-faint { stroke: var(--faint-2); }
+.figure svg .dash { stroke-dasharray: 4 3; }
+.figure svg .grid { stroke: var(--rule-2); }
+.figure svg :is(.dot, .fill-accent) { fill: var(--accent); }
+.figure svg .fill-muted { fill: var(--muted); }
 
 @media (max-width: 1099px) {
   .sidenote { display: none; float: none; width: auto; margin: 12px 0 4px; padding: 12px 14px; background: var(--inset); color: var(--ink-3); }
@@ -397,6 +417,8 @@ kbd { font: 500 11px/1 var(--mono); padding: 4px 6px; box-shadow: inset 0 0 0 1p
   .prose p, .prose li { font-size: 18px; }
   .prose pre { margin-left: -20px; margin-right: -20px; padding: 16px 20px; font-size: 12px; }
   .prose .katex-display { margin-left: -20px; margin-right: -20px; padding: 20px; }
+  .figure .body:has(> svg) { overflow-x: auto; }   /* diagrams keep legible text and scroll, like code */
+  .figure .body > svg { min-width: 540px; }
 }
 
 /* end of article: share row, related, comments */
@@ -414,14 +436,19 @@ kbd { font: 500 11px/1 var(--mono); padding: 4px 6px; box-shadow: inset 0 0 0 1p
 .thread { display: flex; flex-direction: column; }
 .c { padding: 14px 0 0 18px; box-shadow: inset 1px 0 0 var(--rule); }
 .thread > .c { padding-left: 0; box-shadow: none; border-top: 1px solid var(--rule); padding-top: 20px; margin-top: 6px; }
-.c > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 28px; font: 400 12px/1 var(--mono); color: var(--muted); cursor: pointer; }
-.c > summary::-webkit-details-marker { display: none; }
-.c > summary::before { content: "[–]"; min-width: 28px; color: var(--faint); }
-.c:not([open]) > summary::before { content: "[+]"; }
+.c > summary, .fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 28px; font: 400 12px/1 var(--mono); color: var(--muted); cursor: pointer; }
+.c > summary::-webkit-details-marker, .fold > summary::-webkit-details-marker { display: none; }
+.c > summary::before, .fold > summary::before { content: "[–]"; min-width: 28px; color: var(--faint); }
+.c:not([open]) > summary::before, .fold:not([open]) > summary::before { content: "[+]"; }
 .c > summary .u { color: var(--ink); }
 .c > summary .op { font: 500 10px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 3px 5px; color: var(--ground); background: var(--orange); }
 .c > summary .hid { display: none; }
 .c:not([open]) > summary .hid { display: inline; }
+
+/* fold-out passage in a post, styled like a comment thread: <details class="fold"><summary>…</summary> … </details> */
+.fold > summary { min-height: 44px; }
+.fold[open] { padding-left: 18px; box-shadow: inset 1px 0 0 var(--rule); }
+.fold > :not(summary) { margin: 0 0 24px; }
 .c .tx { padding: 6px 0 14px; font-size: 16.5px; line-height: 1.6; color: var(--ink-2); max-width: 620px; overflow-wrap: anywhere; }
 .c .tx p { margin: 0 0 10px; }
 .c .tx pre { font: 13px/1.6 var(--mono); background: var(--inset); padding: 12px; overflow-x: auto; white-space: pre; }
