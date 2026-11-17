@@ -6,7 +6,7 @@ export const site = {
   description: 'Machine learning for small hardware — the model, the compiler underneath it, and the silicon underneath that.',
   headline:
     'I build machine learning for small hardware — the model, the compiler underneath it, and increasingly the silicon underneath that.',
-  email: 'hi@1ob.com',                         // TODO: real address
+  email: 'oskar@1ob.com',
   github: 'https://github.com/oskar-bz',
   linkedin: 'https://linkedin.com/in/oskar-bz',
   hnUser: '',                                  // your HN handle: marks your comments as "Author"

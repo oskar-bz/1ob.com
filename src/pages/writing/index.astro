@@ -6,11 +6,11 @@ const posts = await getPosts();
 const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
 const years = [...new Set(posts.map((p) => p.data.date.getFullYear()))].sort((a, b) => b - a);
 ---
-<Base title="Writing" description="Notes from the projects, published when there's something worth saying.">
+<Base title="Writing" description="Posts about compilers, programming languages and hardware.">
   <div class="wrap">
     <section class="page-head rise">
       <h1>Writing</h1>
-      <p>Notes from the projects, published when there's something worth saying. One sentence on each says what it found.</p>
+      <p>Posts about compilers, programming languages and hardware.</p>
       <a class="nl" href="/rss.xml" style="--c: var(--blue); align-self: flex-start">Subscribe via RSS</a>
     </section>
 

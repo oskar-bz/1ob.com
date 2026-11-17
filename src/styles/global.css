@@ -297,15 +297,15 @@ kbd { font: 500 11px/1 var(--mono); padding: 4px 6px; box-shadow: inset 0 0 0 1p
 
 /* writing archive */
 .years { display: flex; flex-direction: column; gap: 56px; }
-.yr { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--ink); padding-top: 18px; }
-.yr h2 { position: sticky; top: 24px; align-self: start; margin: 0; font: 500 13px/1.6 var(--mono); }
+.yr { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 24px; align-items: baseline; border-top: 1px solid var(--ink); padding-top: 18px; }   /* the year sits on its first entry's line */
+.yr h2 { position: sticky; top: 24px; margin: 0; font: 500 13px/1.6 var(--mono); }
 .ent { display: grid; grid-template-columns: 64px minmax(0, 1fr) 56px; gap: 20px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--rule); text-decoration: none; color: inherit; }
 .ent:first-child { padding-top: 0; }
 .ent:hover { color: inherit; }
 .ent:hover .t { color: var(--blue); }
 .ent .t { font-size: 20px; line-height: 1.35; transition: color .15s; text-wrap: balance; }
 .ent p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--muted); max-width: 600px; text-wrap: pretty; }
-.ent .tags { font: 400 11px/1.4 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+.ent .tags { margin-top: 6px; font: 400 11px/1.4 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
 @media (max-width: 720px) {
   .yr { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .yr h2 { position: static; }

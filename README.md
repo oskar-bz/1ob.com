@@ -73,9 +73,9 @@ Without the Action: run `npm run build` and upload the contents of `dist/` with 
 
 ## Before launch
 
-- [ ] Real content; remove the sample thread (`hn: fixture` in `mel-without-fft.mdx`, `public/data/hn-fixture.json`)
-- [ ] `src/site.ts`: email address, HN handle
-- [ ] Impressum: address (§ 5 DDG). Datenschutz: the draft describes what this site actually does; have it checked
+- [ ] Real content; remove the sample thread data (`public/data/hn-fixture.json`)
+- [ ] `src/site.ts`: HN handle
+- [ ] Datenschutz: the draft describes what this site actually does; have it checked
 - [ ] Social preview image (`og:image`), if wanted
 - [ ] The About page text
 
